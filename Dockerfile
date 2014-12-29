@@ -49,5 +49,6 @@ RUN curl -o egroupware.tar.bz2 -SL http://sourceforge.net/projects/egroupware/fi
 	&& tar -xjf egroupware.tar.bz2 -C /var/www/html \
 	&& rm egroupware.tar.bz2
 
+COPY assets/egroupware.php.ini /usr/local/etc/php/conf.d/egroupware.ini
 
 EXPOSE 80
