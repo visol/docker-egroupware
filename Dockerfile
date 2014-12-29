@@ -42,12 +42,13 @@ RUN curl -o jpgraph.tar.gz -SL "http://jpgraph.net/download/download.php?p=5" \
 ENV EGROUPWARE_VERSION 1.8.007.20140512
 ENV EGROUPWARE_UPSTREAM_VERSION 1.8
 
-#RUN wget http://sourceforge.net/projects/egroupware/files/eGroupware-1.8/eGroupware-1.8.007.20140512/eGroupware-1.8.007.20140512.tar.bz2/download -O /tmp/eGroupware-1.8.007.20140512.tar.bz2
-#wget http://sourceforge.net/projects/egroupware/files/eGroupware-1.8/eGroupware-1.8.007.20140512/eGroupware-egw-pear-1.8.007.20140512.tar.bz2/download -O /tmp/eGroupware-egw-pear-1.8.007.20140512.tar.bz2
-
 RUN curl -o egroupware.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/eGroupware-${EGROUPWARE_VERSION}.tar.bz2/download \
 	&& tar -xjf egroupware.tar.bz2 -C /var/www/html \
 	&& rm egroupware.tar.bz2
+RUN curl -o egroupware-egw-pear.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/eGroupware-egw-pear-${EGROUPWARE_VERSION}.tar.bz2/download \
+	&& tar -xjf egroupware-egw-pear.tar.bz2 -C /var/www/html \
+	&& rm egroupware-egw-pear.tar.bz2
+
 
 COPY assets/egroupware.php.ini /usr/local/etc/php/conf.d/egroupware.ini
 
