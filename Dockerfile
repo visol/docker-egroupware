@@ -51,5 +51,6 @@ RUN curl -o egroupware-egw-pear.tar.bz2 -SL http://sourceforge.net/projects/egro
 
 
 COPY assets/egroupware.php.ini /usr/local/etc/php/conf.d/egroupware.ini
+COPY assets/header.inc.php /var/www/html/egroupware/
 
 EXPOSE 80
