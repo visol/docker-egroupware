@@ -1,4 +1,5 @@
 FROM php:5.5-apache
+MAINTAINER Jonas Renggli <jonas.renggli@visol.ch>
 
 RUN apt-get update \
 	&& apt-get -y install wget bzip2 pwgen \
