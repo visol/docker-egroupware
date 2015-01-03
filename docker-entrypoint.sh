@@ -75,6 +75,16 @@ set_config 'CONFIG_PASSWD' "$(hash_password $EGROUPWARE_CONFIG_PASSWD)"
 
 
 
+#
+# data directories
+#
+
+mkdir -p /var/lib/egroupware/default/backup
+mkdir -p /var/lib/egroupware/default/files
+chown -R www-data:www-data /var/lib/egroupware
+
+
+
 case "$1" in
 	app:start)
 		# Apache gets grumpy about PID files pre-existing

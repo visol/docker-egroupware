@@ -30,9 +30,6 @@ RUN pear install pear install Net_Sieve
 
 RUN apt-get update && apt-get -y install tnef && rm -rf /var/lib/apt/lists/*
 
-#VOLUME /var/www/html
-
-
 RUN curl -o jpgraph.tar.gz -SL "http://jpgraph.net/download/download.php?p=5" \
 	&& mkdir -p /var/www/html/jpgraph \
 	&& tar -xzf jpgraph.tar.gz --strip-components=1 -C /var/www/html/jpgraph \
@@ -51,9 +48,14 @@ RUN curl -o egroupware-egw-pear.tar.bz2 -SL http://sourceforge.net/projects/egro
 
 RUN apt-get update && apt-get install -y pwgen && rm -rf /var/lib/apt/lists/*
 
-COPY assets/egroupware.php.ini /usr/local/etc/php/conf.d/egroupware.ini
+RUN mkdir -p /var/lib/egroupware/default/backup \
+	&& mkdir -p /var/lib/egroupware/default/files \
+	&& chown -R www-data:www-data /var/lib/egroupware
+
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY assets/header.inc.php /var/www/html/egroupware/
+COPY assets/egroupware.php.ini /usr/local/etc/php/conf.d/egroupware.ini
+COPY assets/apache.conf /etc/apache2/apache2.conf
 
 EXPOSE 80
 
