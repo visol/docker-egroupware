@@ -4,7 +4,7 @@ Dockerfile to build a eGroupware container image.
 
 ## Version
 
-Current Version: **1.8.007.20140512**
+Current Version: **14.1.20141219**
 
 # Quick Start
 

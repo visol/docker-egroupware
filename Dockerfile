@@ -32,6 +32,23 @@ RUN pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC8 \
 	&& pear install XML_Feed_Parser \
 	&& pear install pear install Net_Sieve
 
+# PHP extensions for 14.1
+RUN apt-get update \
+	&& apt-get -y install libtidy-dev \
+	&& docker-php-ext-install tidy \
+	&& docker-php-ext-install bcmath \
+	&& rm -rf /var/lib/apt/lists/*
+
+# PHP PEAR extensions for 14.1
+RUN pear channel-discover pear.horde.org \
+	&& pear install pear.horde.org/Horde_Mail \
+	&& pear install pear.horde.org/Horde_Imap_Client \
+	&& pear install pear.horde.org/Horde_Nls \
+	&& pear install pear.horde.org/Horde_Smtp \
+	&& pear install pear.horde.org/Horde_Compress \
+	&& pear install pear.horde.org/Horde_Icalendar \
+	&& pear install pear.horde.org/Horde_Mapi
+
 RUN apt-get update \
 	&& apt-get -y install tnef \
 	&& rm -rf /var/lib/apt/lists/* \
@@ -40,16 +57,15 @@ RUN apt-get update \
 	&& tar -xzf jpgraph.tar.gz --strip-components=1 -C /var/www/html/jpgraph \
 	&& rm jpgraph.tar.gz
 
-#ENV EGROUPWARE_VERSION 14.1.20141219
-ENV EGROUPWARE_VERSION 1.8.007.20140512
-ENV EGROUPWARE_UPSTREAM_VERSION 1.8
+ENV EGROUPWARE_VERSION 14.1.20141219
+ENV EGROUPWARE_UPSTREAM_VERSION 14.1
 
-RUN curl -o egroupware.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/eGroupware-${EGROUPWARE_VERSION}.tar.bz2/download \
-	&& tar -xjf egroupware.tar.bz2 -C /var/www/html \
-	&& rm egroupware.tar.bz2
-RUN curl -o egroupware-egw-pear.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/eGroupware-egw-pear-${EGROUPWARE_VERSION}.tar.bz2/download \
-	&& tar -xjf egroupware-egw-pear.tar.bz2 -C /var/www/html \
-	&& rm egroupware-egw-pear.tar.bz2
+RUN curl -o egroupware-epl.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/egroupware-epl-${EGROUPWARE_VERSION}.tar.bz2/download \
+	&& tar -xjf egroupware-epl.tar.bz2 -C /var/www/html \
+	&& rm egroupware-epl.tar.bz2
+RUN curl -o egroupware-epl-egw-pear.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/egroupware-epl-egw-pear-${EGROUPWARE_VERSION}.tar.bz2/download \
+	&& tar -xjf egroupware-epl-egw-pear.tar.bz2 -C /var/www/html \
+	&& rm egroupware-epl-egw-pear.tar.bz2
 
 
 COPY docker-entrypoint.sh /entrypoint.sh
