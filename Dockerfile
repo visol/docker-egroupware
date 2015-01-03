@@ -1,36 +1,40 @@
 FROM php:5.5-apache
 
-RUN apt-get update && apt-get -y install wget bzip2 && rm -r /var/lib/apt/lists/*
+RUN apt-get update \
+	&& apt-get -y install wget bzip2 pwgen \
+	&& rm -r /var/lib/apt/lists/*
 
 RUN a2enmod rewrite
 
 # install the PHP extensions we need
-RUN apt-get update && apt-get install -y libpng12-dev libjpeg-dev && rm -rf /var/lib/apt/lists/* \
+RUN apt-get update \
+	&& apt-get install -y libpng12-dev libjpeg-dev \
 	&& docker-php-ext-configure gd --with-jpeg-dir=/usr/lib \
-	&& docker-php-ext-install gd
-RUN docker-php-ext-install mysqli
-#RUN docker-php-ext-install mysql
-RUN docker-php-ext-install pdo_mysql
-RUN apt-get update && apt-get -y install re2c libmcrypt-dev && rm -rf /var/lib/apt/lists/* \
-	&& docker-php-ext-install mcrypt
-RUN apt-get update && apt-get -y install zlib1g-dev && rm -rf /var/lib/apt/lists/* \
+	&& docker-php-ext-install gd \
+	&& docker-php-ext-install mysqli
+	&& docker-php-ext-install pdo_mysql \
+	&& apt-get -y install re2c libmcrypt-dev \
+	&& docker-php-ext-install mcrypt \
+	&& apt-get -y install zlib1g-dev \
 	&& docker-php-ext-install zip \
-	&& apt-get purge --auto-remove -y zlib1g-dev
-RUN apt-get update && apt-get -y install libssl-dev libc-client2007e-dev libkrb5-dev && rm -rf /var/lib/apt/lists/* \
+	&& apt-get purge --auto-remove -y zlib1g-dev \
+	&& apt-get -y install libssl-dev libc-client2007e-dev libkrb5-dev \
 	&& docker-php-ext-configure imap --with-imap-ssl --with-kerberos \
-	&& docker-php-ext-install imap
-RUN docker-php-ext-install mbstring
+	&& docker-php-ext-install imap \
+	&& docker-php-ext-install mbstring \
+	&& rm -rf /var/lib/apt/lists/*
 
+# install PHP PEAR extensions
+RUN pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC8 \
+	&& pear install Auth_SASL \
+	&& pear install Net_IMAP \
+	&& pear install XML_Feed_Parser \
+	&& pear install pear install Net_Sieve
 
-RUN pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC8
-RUN pear install Auth_SASL
-RUN pear install Net_IMAP
-RUN pear install XML_Feed_Parser
-RUN pear install pear install Net_Sieve
-
-RUN apt-get update && apt-get -y install tnef && rm -rf /var/lib/apt/lists/*
-
-RUN curl -o jpgraph.tar.gz -SL "http://jpgraph.net/download/download.php?p=5" \
+RUN apt-get update \
+	&& apt-get -y install tnef \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& curl -o jpgraph.tar.gz -SL "http://jpgraph.net/download/download.php?p=5" \
 	&& mkdir -p /var/www/html/jpgraph \
 	&& tar -xzf jpgraph.tar.gz --strip-components=1 -C /var/www/html/jpgraph \
 	&& rm jpgraph.tar.gz
@@ -46,14 +50,9 @@ RUN curl -o egroupware-egw-pear.tar.bz2 -SL http://sourceforge.net/projects/egro
 	&& tar -xjf egroupware-egw-pear.tar.bz2 -C /var/www/html \
 	&& rm egroupware-egw-pear.tar.bz2
 
-RUN apt-get update && apt-get install -y pwgen && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /var/lib/egroupware/default/backup \
-	&& mkdir -p /var/lib/egroupware/default/files \
-	&& chown -R www-data:www-data /var/lib/egroupware
 
 COPY docker-entrypoint.sh /entrypoint.sh
-COPY assets/header.inc.php /var/www/html/egroupware/
+COPY assets/header.inc.php /var/www/html/egroupware/header.inc.php
 COPY assets/egroupware.php.ini /usr/local/etc/php/conf.d/egroupware.ini
 COPY assets/apache.conf /etc/apache2/apache2.conf
 
