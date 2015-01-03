@@ -34,24 +34,24 @@ define('EGW_INCLUDE_ROOT',EGW_SERVER_ROOT);
 define('EGW_API_INC',EGW_INCLUDE_ROOT.'/phpgwapi/inc');
 
 // who is allowed to make changes to THIS config file via eGW's setup
-$GLOBALS['egw_info']['server']['header_admin_user'] = 'admin';
-$GLOBALS['egw_info']['server']['header_admin_password'] = '{crypt}$2a$12$bM2fHVVyBELxdypwNsbhZehzQH9758IyRQNpgNn6m4qVAUxSRvFsO';
+$GLOBALS['egw_info']['server']['header_admin_user'] = '{HEADER_ADMIN_USER}';
+$GLOBALS['egw_info']['server']['header_admin_password'] = '{HEADER_ADMIN_PASSWORD}';
 
 // restrict the access to setup to certain (comma separated) IPs or domains
 $GLOBALS['egw_info']['server']['setup_acl'] = '';
 
 /* eGroupWare domain-specific db settings */
 $GLOBALS['egw_domain']['default'] = array(
-	'db_host' => '172.17.0.87',
-	'db_port' => '3306',
-	'db_name' => 'egroupware',
-	'db_user' => 'egroupware',
-	'db_pass' => 'V4dfjtfYqHgx',
+	'db_host' => '{DB_HOST}',
+	'db_port' => '{DB_PORT}',
+	'db_name' => '{DB_NAME}',
+	'db_user' => '{DB_USER}',
+	'db_pass' => '{DB_PASS}',
 	// Look at the README file
 	'db_type' => 'mysqli',
 	// This will limit who is allowed to make configuration modifications
-	'config_user'   => 'admin',
-	'config_passwd' => '{crypt}$2a$12$QnwOSvOnvVbyKCWvC6MjDOiq3YooRP.mMi3OcxlO6dWCGbPT0Akg6'
+	'config_user'   => '{CONFIG_USER}',
+	'config_passwd' => '{CONFIG_PASSWD}'
 );
 
 
@@ -83,7 +83,7 @@ $GLOBALS['egw_info']['server']['mcrypt_enabled'] = false;
 ** but you must not change it after that point!
 ** It should be around 30 bytes in length.
 */
-$GLOBALS['egw_info']['server']['mcrypt_iv'] = 'chAMJBszcmrwfLB1lrsE3dFgi73RA3';
+$GLOBALS['egw_info']['server']['mcrypt_iv'] = '{MCRYPT_IV}';
 
 if(!isset($GLOBALS['egw_info']['flags']['nocachecontrol']) || !$GLOBALS['egw_info']['flags']['nocachecontrol'])
 {

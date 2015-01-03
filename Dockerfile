@@ -49,6 +49,7 @@ RUN curl -o egroupware-egw-pear.tar.bz2 -SL http://sourceforge.net/projects/egro
 	&& tar -xjf egroupware-egw-pear.tar.bz2 -C /var/www/html \
 	&& rm egroupware-egw-pear.tar.bz2
 
+RUN apt-get update && apt-get install -y pwgen && rm -rf /var/lib/apt/lists/*
 
 COPY assets/egroupware.php.ini /usr/local/etc/php/conf.d/egroupware.ini
 COPY docker-entrypoint.sh /entrypoint.sh

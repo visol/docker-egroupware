@@ -1,37 +1,43 @@
 #!/bin/bash
 set -e
 
-case "$1" in
-  app:start)
-    # Apache gets grumpy about PID files pre-existing
-    rm -f /var/run/apache2/apache2.pid
-    exec apache2 -DFOREGROUND
-    ;;
-  app:rake)
-    shift 1
-    appRake $@
-    ;;
-  app:help)
-    appHelp
-    ;;
-  *)
-    if [ -x $1 ]; then
-      $1
-    else
-      prog=$(which $1)
-      if [ -n "${prog}" ] ; then
-        shift 1
-        $prog $@
-      else
-        appHelp
-      fi
-    fi
-    ;;
-esac
 
-exit 0
+# Replace {key} with value
+set_config() {
+	key="$1"
+	value="$2"
+	php_escaped_value="$(php -r 'var_export($argv[1]);' "$value")"
+	sed_escaped_value="$(echo "$php_escaped_value" | sed 's/[\/&]/\\&/g')"
+	sed -ri "s/(['\"])?\{$key\}(['\"])?/$sed_escaped_value/" /var/www/html/egroupware/header.inc.php
+}
 
 
+
+#
+# Initialization vector for mcrypt
+#
+
+# Ensure mcrypt_iv exists. Generate if necessary
+if [ ! -f /var/lib/egroupware/mcrypt_iv ]; then
+	echo Generate the initialization vector for mcrypt
+	echo
+	echo Excerpt from egroupware documentation:
+	echo      This is a random string used as the initialization vector for mcrypt
+	echo      feel free to change it when setting up eGrouWare on a clean database,
+	echo      but you must not change it after that point!
+	echo      It should be around 30 bytes in length.
+	echo
+
+	pwgen -s 30 > /var/lib/egroupware/mcrypt_iv
+fi
+
+set_config 'MCRYPT_IV' "`cat /var/lib/egroupware/mcrypt_iv`"
+
+
+
+#
+# database configuration
+#
 
 if [ -z "$MYSQL_PORT_3306_TCP" ]; then
 	echo >&2 'error: missing MYSQL_PORT_3306_TCP environment variable'
@@ -39,115 +45,55 @@ if [ -z "$MYSQL_PORT_3306_TCP" ]; then
 	exit 1
 fi
 
-exec "$@"
+set_config 'DB_HOST' "$MYSQL_PORT_3306_TCP_ADDR"
+set_config 'DB_PORT' "$MYSQL_PORT_3306_TCP_PORT"
+set_config 'DB_NAME' "$MYSQL_ENV_MYSQL_DATABASE"
+set_config 'DB_USER' "$MYSQL_ENV_MYSQL_USER"
+set_config 'DB_PASS' "$MYSQL_ENV_MYSQL_PASSWORD"
+
+
+
+#
+# header admin / config password
+#
+
+hash_password() {
+	password="$1"
+	php -r "echo('{crypt}' . crypt('${password}', '\$2a\$12\$' . substr(trim(file_get_contents('/var/lib/egroupware/mcrypt_iv')), 0, 22)));"
+}
+
+
+EGROUPWARE_HEADER_ADMIN_USER=${EGROUPWARE_HEADER_ADMIN_USER-"admin"}
+EGROUPWARE_HEADER_ADMIN_PASSWORD=${EGROUPWARE_HEADER_ADMIN_PASSWORD-"password"}
+EGROUPWARE_CONFIG_USER=${EGROUPWARE_CONFIG_USER-"admin"}
+EGROUPWARE_CONFIG_PASSWD=${EGROUPWARE_CONFIG_PASSWD-"password"}
+
+set_config 'HEADER_ADMIN_USER' "$EGROUPWARE_HEADER_ADMIN_USER"
+set_config 'HEADER_ADMIN_PASSWORD' "$(hash_password $EGROUPWARE_HEADER_ADMIN_PASSWORD)"
+set_config 'CONFIG_USER' "$EGROUPWARE_CONFIG_USER"
+set_config 'CONFIG_PASSWD' "$(hash_password $EGROUPWARE_CONFIG_PASSWD)"
+
+
+
+case "$1" in
+	app:start)
+		# Apache gets grumpy about PID files pre-existing
+		rm -f /var/run/apache2/apache2.pid
+		exec apache2 -DFOREGROUND
+		;;
+	*)
+		if [ -x $1 ]; then
+			$1
+		else
+			prog=$(which $1)
+			if [ -n "${prog}" ] ; then
+				shift 1
+				$prog $@
+			else
+				appHelp
+			fi
+		fi
+		;;
+esac
 
 exit 0
-
-# if we're linked to MySQL, and we're using the root user, and our linked
-# container has a default "root" password set up and passed through... :)
-: ${WORDPRESS_DB_USER:=root}
-if [ "$WORDPRESS_DB_USER" = 'root' ]; then
-	: ${WORDPRESS_DB_PASSWORD:=$MYSQL_ENV_MYSQL_ROOT_PASSWORD}
-fi
-: ${WORDPRESS_DB_NAME:=wordpress}
-
-if [ -z "$WORDPRESS_DB_PASSWORD" ]; then
-	echo >&2 'error: missing required WORDPRESS_DB_PASSWORD environment variable'
-	echo >&2 '  Did you forget to -e WORDPRESS_DB_PASSWORD=... ?'
-	echo >&2
-	echo >&2 '  (Also of interest might be WORDPRESS_DB_USER and WORDPRESS_DB_NAME.)'
-	exit 1
-fi
-
-if ! [ -e index.php -a -e wp-includes/version.php ]; then
-	echo >&2 "WordPress not found in $(pwd) - copying now..."
-	if [ "$(ls -A)" ]; then
-		echo >&2 "WARNING: $(pwd) is not empty - press Ctrl+C now if this is an error!"
-		( set -x; ls -A; sleep 10 )
-	fi
-	rsync --archive --one-file-system --quiet /usr/src/wordpress/ ./
-	echo >&2 "Complete! WordPress has been successfully copied to $(pwd)"
-	if [ ! -e .htaccess ]; then
-		cat > .htaccess <<-'EOF'
-			RewriteEngine On
-			RewriteBase /
-			RewriteRule ^index\.php$ - [L]
-			RewriteCond %{REQUEST_FILENAME} !-f
-			RewriteCond %{REQUEST_FILENAME} !-d
-			RewriteRule . /index.php [L]
-		EOF
-	fi
-fi
-
-# TODO handle WordPress upgrades magically in the same way, but only if wp-includes/version.php's $wp_version is less than /usr/src/wordpress/wp-includes/version.php's $wp_version
-
-if [ ! -e wp-config.php ]; then
-	awk '/^\/\*.*stop editing.*\*\/$/ && c == 0 { c = 1; system("cat") } { print }' wp-config-sample.php > wp-config.php <<'EOPHP'
-// If we're behind a proxy server and using HTTPS, we need to alert Wordpress of that fact
-// see also http://codex.wordpress.org/Administration_Over_SSL#Using_a_Reverse_Proxy
-if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
-	$_SERVER['HTTPS'] = 'on';
-}
-EOPHP
-fi
-
-set_config() {
-	key="$1"
-	value="$2"
-	php_escaped_value="$(php -r 'var_export($argv[1]);' "$value")"
-	sed_escaped_value="$(echo "$php_escaped_value" | sed 's/[\/&]/\\&/g')"
-	sed -ri "s/((['\"])$key\2\s*,\s*)(['\"]).*\3/\1$sed_escaped_value/" wp-config.php
-}
-
-WORDPRESS_DB_HOST="${MYSQL_PORT_3306_TCP#tcp://}"
-
-set_config 'DB_HOST' "$WORDPRESS_DB_HOST"
-set_config 'DB_USER' "$WORDPRESS_DB_USER"
-set_config 'DB_PASSWORD' "$WORDPRESS_DB_PASSWORD"
-set_config 'DB_NAME' "$WORDPRESS_DB_NAME"
-
-# allow any of these "Authentication Unique Keys and Salts." to be specified via
-# environment variables with a "WORDPRESS_" prefix (ie, "WORDPRESS_AUTH_KEY")
-UNIQUES=(
-	AUTH_KEY
-	SECURE_AUTH_KEY
-	LOGGED_IN_KEY
-	NONCE_KEY
-	AUTH_SALT
-	SECURE_AUTH_SALT
-	LOGGED_IN_SALT
-	NONCE_SALT
-)
-for unique in "${UNIQUES[@]}"; do
-	eval unique_value=\$WORDPRESS_$unique
-	if [ "$unique_value" ]; then
-		set_config "$unique" "$unique_value"
-	else
-		# if not specified, let's generate a random value
-		current_set="$(sed -rn "s/define\((([\'\"])$unique\2\s*,\s*)(['\"])(.*)\3\);/\4/p" wp-config.php)"
-		if [ "$current_set" = 'put your unique phrase here' ]; then
-			set_config "$unique" "$(head -c1M /dev/urandom | sha1sum | cut -d' ' -f1)"
-		fi
-	fi
-done
-
-TERM=dumb php -- "$WORDPRESS_DB_HOST" "$WORDPRESS_DB_USER" "$WORDPRESS_DB_PASSWORD" "$WORDPRESS_DB_NAME" <<'EOPHP'
-<?php
-// database might not exist, so let's try creating it (just to be safe)
-list($host, $port) = explode(':', $argv[1], 2);
-$mysql = new mysqli($host, $argv[2], $argv[3], '', (int)$port);
-if ($mysql->connect_error) {
-	file_put_contents('php://stderr', 'MySQL Connection Error: (' . $mysql->connect_errno . ') ' . $mysql->connect_error . "\n");
-	exit(1);
-}
-if (!$mysql->query('CREATE DATABASE IF NOT EXISTS `' . $mysql->real_escape_string($argv[4]) . '`')) {
-	file_put_contents('php://stderr', 'MySQL "CREATE DATABASE" Error: ' . $mysql->error . "\n");
-	$mysql->close();
-	exit(1);
-}
-$mysql->close();
-EOPHP
-
-chown -R www-data:www-data .
-
-exec "$@"
