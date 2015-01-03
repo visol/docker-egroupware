@@ -11,7 +11,7 @@ RUN apt-get update \
 	&& apt-get install -y libpng12-dev libjpeg-dev \
 	&& docker-php-ext-configure gd --with-jpeg-dir=/usr/lib \
 	&& docker-php-ext-install gd \
-	&& docker-php-ext-install mysqli
+	&& docker-php-ext-install mysqli \
 	&& docker-php-ext-install pdo_mysql \
 	&& apt-get -y install re2c libmcrypt-dev \
 	&& docker-php-ext-install mcrypt \
