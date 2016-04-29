@@ -4,7 +4,7 @@ Dockerfile to build a eGroupware container image.
 
 ## Version
 
-Current Version: **14.1.20141219**
+Current Version: **14.3.20160304**
 
 # Quick Start
 
@@ -32,7 +32,7 @@ docker run -d \
 -p 10080:80 \
 -v /opt/egroupware/data:/var/lib/egroupware \
 --link mysql-egroupware:mysql \
-visol/egroupware:1.8.007.20140512
+visol/egroupware:14.3.20160304
 ```
 
 Point your browser to `http://localhost:10080/setup/` and login with the defined username and password:

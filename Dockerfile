@@ -57,16 +57,12 @@ RUN apt-get update \
 	&& tar -xzf jpgraph.tar.gz --strip-components=1 -C /var/www/html/jpgraph \
 	&& rm jpgraph.tar.gz
 
-ENV EGROUPWARE_VERSION 14.1.20141219
-ENV EGROUPWARE_UPSTREAM_VERSION 14.1
+ENV EGROUPWARE_VERSION 14.3.20160304
+ENV EGROUPWARE_UPSTREAM_VERSION 14.3
 
 RUN curl -o egroupware-epl.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/egroupware-epl-${EGROUPWARE_VERSION}.tar.bz2/download \
 	&& tar -xjf egroupware-epl.tar.bz2 -C /var/www/html \
 	&& rm egroupware-epl.tar.bz2
-RUN curl -o egroupware-epl-egw-pear.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/egroupware-epl-egw-pear-${EGROUPWARE_VERSION}.tar.bz2/download \
-	&& tar -xjf egroupware-epl-egw-pear.tar.bz2 -C /var/www/html \
-	&& rm egroupware-epl-egw-pear.tar.bz2
-
 
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY assets/header.inc.php /var/www/html/egroupware/header.inc.php
