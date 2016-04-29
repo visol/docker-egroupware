@@ -45,7 +45,7 @@ if [ -z "$MYSQL_PORT_3306_TCP" ]; then
 	exit 1
 fi
 
-set_config 'DB_HOST' "$MYSQL_PORT_3306_TCP_ADDR"
+set_config 'DB_HOST' "mysql"
 set_config 'DB_PORT' "$MYSQL_PORT_3306_TCP_PORT"
 set_config 'DB_NAME' "$MYSQL_ENV_MYSQL_DATABASE"
 set_config 'DB_USER' "$MYSQL_ENV_MYSQL_USER"
