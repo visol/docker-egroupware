@@ -32,14 +32,14 @@ RUN pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC8 \
 	&& pear install XML_Feed_Parser \
 	&& pear install pear install Net_Sieve
 
-# PHP extensions for 14.1
+# PHP extensions for 16.1
 RUN apt-get update \
 	&& apt-get -y install libtidy-dev \
 	&& docker-php-ext-install tidy \
 	&& docker-php-ext-install bcmath \
 	&& rm -rf /var/lib/apt/lists/*
 
-# PHP PEAR extensions for 14.1
+# PHP PEAR extensions for 16.1
 RUN pear channel-discover pear.horde.org \
 	&& pear install pear.horde.org/Horde_Mail \
 	&& pear install pear.horde.org/Horde_Imap_Client \
@@ -57,10 +57,9 @@ RUN apt-get update \
 	&& tar -xzf jpgraph.tar.gz --strip-components=1 -C /var/www/html/jpgraph \
 	&& rm jpgraph.tar.gz
 
-ENV EGROUPWARE_VERSION 14.3.20160428
-ENV EGROUPWARE_UPSTREAM_VERSION 14.3
+ENV EGROUPWARE_VERSION 16.1.20161102
 
-RUN curl -o egroupware-epl.tar.bz2 -SL http://sourceforge.net/projects/egroupware/files/eGroupware-${EGROUPWARE_UPSTREAM_VERSION}/eGroupware-${EGROUPWARE_VERSION}/egroupware-epl-${EGROUPWARE_VERSION}.tar.bz2/download \
+RUN curl -o egroupware-epl.tar.bz2 -SL https://github.com/EGroupware/egroupware/releases/download/${EGROUPWARE_VERSION}/egroupware-epl-${EGROUPWARE_VERSION}.tar.bz2 \
 	&& tar -xjf egroupware-epl.tar.bz2 -C /var/www/html \
 	&& rm egroupware-epl.tar.bz2
 
