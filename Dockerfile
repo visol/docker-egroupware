@@ -1,4 +1,4 @@
-FROM php:5.6-apache
+FROM php:7.0-apache
 MAINTAINER Jonas Renggli <jonas.renggli@visol.ch>
 
 RUN apt-get update \
@@ -61,7 +61,7 @@ RUN apt-get update \
 	&& tar -xzf jpgraph.tar.gz --strip-components=1 -C /var/www/html/jpgraph \
 	&& rm jpgraph.tar.gz
 
-ENV EGROUPWARE_VERSION 16.1.20161102
+ENV EGROUPWARE_VERSION 17.1.20171115
 
 RUN curl -o egroupware-epl.tar.bz2 -SL https://github.com/EGroupware/egroupware/releases/download/${EGROUPWARE_VERSION}/egroupware-epl-${EGROUPWARE_VERSION}.tar.bz2 \
 	&& tar -xjf egroupware-epl.tar.bz2 -C /var/www/html \
