@@ -4,7 +4,7 @@ Dockerfile to build a eGroupware container image.
 
 ## Version
 
-Current Version: **14.3.20160428**
+Current Version: **17.1.20171115**
 
 # Quick Start
 
@@ -35,7 +35,7 @@ docker run -d \
 visol/egroupware:14.3.20160428
 ```
 
-Point your browser to `http://localhost:10080/setup/` and login with the defined username and password:
+Point your browser to `http://localhost:10080/egroupware/setup/` and login with the defined username and password:
 
 * username: **admin**
 * password: **123456**
