@@ -9,7 +9,7 @@ RUN a2enmod rewrite
 
 # install the PHP extensions we need
 RUN apt-get update \
-	&& apt-get install -y libpng12-dev libjpeg-dev \
+	&& apt-get install -y libpng16-16 libpng-dev libjpeg-dev \
 	&& docker-php-ext-configure gd --with-jpeg-dir=/usr/lib \
 	&& docker-php-ext-install gd \
 	&& docker-php-ext-install mysqli \
